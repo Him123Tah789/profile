@@ -1,0 +1,220 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  DOWNLOAD
+  CONTACT_SUBMIT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  name      String
+  headline  String?
+  bio       String?
+  photoUrl  String?
+  location  String?
+  email     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SocialLinks {
+  id            String  @id @default(cuid())
+  github        String?
+  linkedin      String?
+  googleScholar String?
+  orcid         String?
+  twitter       String?
+  website       String?
+  updatedAt     DateTime @updatedAt
+}
+
+model Skill {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  level     Int
+  icon      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  techStack   String[]
+  githubLink  String?
+  liveLink    String?
+  images      String[]
+  featured    Boolean  @default(false)
+  tags        String[]
+  status      PublishStatus @default(PUBLISHED)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([featured])
+  @@index([status])
+}
+
+model Paper {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  authors    String[]
+  venue      String?
+  year       Int
+  abstract   String
+  pdfLink    String?
+  codeLink   String?
+  citations  Int      @default(0)
+  tags       String[]
+  status     PublishStatus @default(PUBLISHED)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([year])
+  @@index([status])
+}
+
+model Certificate {
+  id            String   @id @default(cuid())
+  title         String
+  issuer        String
+  year          Int
+  credentialUrl String?
+  assetUrl      String?
+  tags          String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([year])
+}
+
+model Post {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  content     String
+  excerpt     String?
+  coverImage  String?
+  tags        String[]
+  status      PublishStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Document {
+  id          String      @id @default(cuid())
+  title       String
+  category    String
+  fileUrl     String
+  visibility  Visibility  @default(PUBLIC)
+  description String?
+  tags        String[]
+  status      PublishStatus @default(PUBLISHED)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([visibility])
+  @@index([status])
+  @@index([category])
+}
+
+model CV {
+  id          String   @id @default(cuid())
+  fileUrl     String
+  version     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([isActive])
+}
+
+model AnalyticsEvent {
+  id        String             @id @default(cuid())
+  type      AnalyticsEventType
+  path      String?
+  metadata  Json?
+  createdAt DateTime           @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum KnowledgeSourceType {
+  PROFILE
+  PROJECT
+  PAPER
+  CERTIFICATE
+  POST
+  DOCUMENT
+}
+
+model KnowledgeSource {
+  id        String              @id @default(cuid())
+  type      KnowledgeSourceType
+  sourceId  String
+  title     String
+  content   String
+  link      String
+  isPublic  Boolean             @default(true)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  chunks    KnowledgeChunk[]
+
+  @@unique([type, sourceId])
+  @@index([isPublic])
+}
+
+model KnowledgeChunk {
+  id                String          @id @default(cuid())
+  knowledgeSourceId String
+  chunkIndex        Int
+  content           String
+  embedding         String?   // JSON array of floats (cosine similarity computed in-app)
+  createdAt         DateTime        @default(now())
+
+  knowledgeSource   KnowledgeSource @relation(fields: [knowledgeSourceId], references: [id], onDelete: Cascade)
+
+  @@unique([knowledgeSourceId, chunkIndex])
+  @@index([knowledgeSourceId])
+}
