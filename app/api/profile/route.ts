@@ -13,7 +13,10 @@ export async function PUT(req: Request) {
   try {
     await requireAdmin();
     const parsed = await parseJson(req, profileSchema);
-    if ("error" in parsed) return parsed.error;
+    if ("error" in parsed) {
+      console.error("Profile Validation Error:", parsed.error);
+      return parsed.error;
+    }
 
     const existing = await db.profile.findFirst();
     const profile = existing
@@ -22,6 +25,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json(profile);
   } catch (error) {
+    console.error("Profile Save Database Error:", error);
     return serverError(error);
   }
 }

@@ -3,7 +3,16 @@ import { mkdir, writeFile } from "fs/promises";
 import { join } from "path";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-const allowedMime = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
+const allowedMime = new Set([
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+  "image/heic"
+]);
 
 export function ensureAllowedFile(file: File) {
   if (!allowedMime.has(file.type)) {

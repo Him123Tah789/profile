@@ -2,23 +2,40 @@
 import { db } from "@/lib/db";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { PageTracker } from "@/components/public/page-tracker";
+import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/animations";
 
 export default async function ActivityPage() {
   const posts = await db.post.findMany({ where: { status: "PUBLISHED" }, orderBy: { createdAt: "desc" } });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-16">
       <PageTracker path="/activity" />
-      <h1 className="mb-6 text-3xl font-bold">Activity</h1>
-      <div className="grid gap-4">
+
+      <FadeIn>
+        <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl mb-2">
+          <span className="gradient-text">Activity</span>
+        </h1>
+        <p className="mt-4 text-lg text-muted-foreground">Thoughts, articles, and latest updates.</p>
+      </FadeIn>
+
+      <StaggerContainer className="mt-12 grid gap-6">
         {posts.map((post) => (
-          <Card key={post.id}>
-            <CardTitle>{post.title}</CardTitle>
-            <CardDescription className="mt-2">{post.excerpt || "Article"}</CardDescription>
-            <Link className="mt-3 inline-block text-primary" href={`/activity/${post.slug}`}>Read</Link>
-          </Card>
+          <StaggerItem key={post.id}>
+            <Card className="flex items-center justify-between">
+              <div className="flex-grow">
+                <CardTitle className="text-xl">{post.title}</CardTitle>
+                <CardDescription className="mt-2">{post.excerpt || "Read the full article."}</CardDescription>
+              </div>
+              <Link
+                className="ml-6 shrink-0 inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                href={`/activity/${post.slug}`}
+              >
+                Read <span className="ml-1 transition-transform duration-300 group-hover:translate-x-1">→</span>
+              </Link>
+            </Card>
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerContainer>
     </div>
   );
 }

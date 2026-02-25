@@ -9,7 +9,7 @@ export const profileSchema = z.object({
   name: z.string().min(2),
   headline: z.string().optional().or(z.literal("")),
   bio: z.string().optional().or(z.literal("")),
-  photoUrl: z.string().url().optional().or(z.literal("")),
+  photoUrl: z.string().optional().or(z.literal("")),
   location: z.string().optional().or(z.literal("")),
   email: z.string().email()
 });
